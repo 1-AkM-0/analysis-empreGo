@@ -24,18 +24,11 @@ def main():
 
     df = df[df["area"] != "nao_informado"]
     df = df[df["stack"].apply(len) > 0].reset_index(drop=True)
+    df["area"] = df["area"].apply(lambda area: area.title())
 
     df["qtd_tecnologias"] = df["stack"].apply(len)
 
     areas = df["area"].value_counts().sort_values(ascending=False)
-
-    areas.plot(kind="barh", figsize=(10, 6), color="steelblue")
-    plt.title("Vagas de estágio em tech por área (fev–abr 2026)")
-    plt.xlabel("Quantidade de vagas")
-    plt.ylabel("")
-    plt.tight_layout()
-    plt.savefig("../data/quantidade_vagas_area.png", dpi=150)
-    plt.close()
 
     df["stack"] = df["stack"].apply(
         lambda lista: [t.upper() if len(t) <= 3 else t.title() for t in lista]
@@ -70,13 +63,35 @@ def main():
         axis=1,
     )
 
-    plt.figure(figsize=(10, 6))
-    plt.barh(top3_plot["label"], top3_plot["frequencia"], color="steelblue")
-    plt.xlabel("Número de vagas que mencionam a tecnologia")
-    plt.title("Top 3 tecnologias mais pedidas por área")
-    plt.gca().invert_yaxis()
+    _, ax = plt.subplots(figsize=(10, 6))
+    bars = ax.barh(
+        top3_plot["area"] + " - " + top3_plot["stack"],
+        top3_plot["frequencia"],
+        color="#2E86AB",
+        edgecolor="#1A5276",
+    )
+    ax.set_xlabel("Menções em vagas", fontsize=11, fontweight="bold")
+    ax.set_title(
+        "Top 3 Tecnologias por Área de Estágio", fontsize=14, fontweight="bold", pad=20
+    )
+    ax.invert_yaxis()
+    ax.bar_label(bars, padding=5, fontsize=9)
     plt.tight_layout()
-    plt.savefig("../data/top3_por_area.png", dpi=150)
+    plt.savefig("../data/top3_clean.png", dpi=300, bbox_inches="tight")
+
+    _, ax = plt.subplots(figsize=(10, 6))
+    colors = ["#E74C3C" if area == "dados" else "#3498DB" for area in areas.index]
+    bars = ax.barh(areas.index, areas.values, color=colors)
+    ax.set_xlabel("Quantidade de vagas", fontsize=11, fontweight="bold")
+    ax.set_title(
+        "Vagas de estágio em tech por área (fev–abr 2026)",
+        fontsize=14,
+        fontweight="bold",
+        pad=20,
+    )
+    ax.bar_label(bars, padding=5, fontsize=10)
+    plt.tight_layout()
+    plt.savefig("../data/areas_destaque.png", dpi=300, bbox_inches="tight")
 
 
 if __name__ == "__main__":
